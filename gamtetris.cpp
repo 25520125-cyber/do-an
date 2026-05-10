@@ -129,6 +129,32 @@ void draw() {
     cout << "Speed: " << speed << endl;
 }
 
+///////////////////////////////////////////////////// XOAY BLOCK
+
+void rotateBlock()
+{
+    char temp[4][4];
+
+    //  block cũ
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            temp[i][j] = blocks[b][i][j];
+
+    // xoay 90 độ
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            blocks[b][j][3 - i] = temp[i][j];
+
+    //  lỗi thì trả lại
+    if (!canMove(0, 0))
+    {
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+                blocks[b][i][j] = temp[i][j];
+    }
+}
+
+
 int main()
 {
     srand(time(0));
@@ -155,3 +181,4 @@ int main()
     }
     return 0;
 }
+
