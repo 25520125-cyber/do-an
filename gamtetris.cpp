@@ -1,4 +1,5 @@
 #include <iostream>
+﻿#include <iostream>
 #include <conio.h>
 #include <windows.h>
 using namespace std;
@@ -138,4 +139,29 @@ int main()
         _sleep(200);
     }
     return 0;
+}
+
+///////////////////////////////////////////////////// XOAY BLOCK
+
+void rotateBlock()
+{
+    char temp[4][4];
+
+    //  block cũ
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            temp[i][j] = blocks[b][i][j];
+
+    // xoay 90 độ
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            blocks[b][j][3 - i] = temp[i][j];
+
+    //  lỗi thì trả lại
+    if (!canMove(0, 0))
+    {
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+                blocks[b][i][j] = temp[i][j];
+    }
 }
