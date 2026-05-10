@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <conio.h>
 #include <windows.h>
 using namespace std;
@@ -72,6 +72,9 @@ char blocks[][4][4] = {
          {' ',' ',' ',' '}}
 };
 
+int score = 0;
+int speed = 200;
+
 int x=4,y=0,b=1;
 void gotoxy(int x, int y) {
     COORD c = {x, y};
@@ -95,12 +98,7 @@ void initBoard(){
             if ((i==H-1) || (j==0) || (j == W-1)) board[i][j] = '#';
             else board[i][j] = ' ';
 }
-void draw(){
-    gotoxy(0,0);
-    for (int i = 0 ; i < H ; i++, cout<<endl)
-        for (int j = 0 ; j < W ; j++)
-            cout<<board[i][j];
-}
+
 bool canMove(int dx, int dy){
     for (int i = 0 ; i < 4 ; i++)
         for (int j = 0 ; j < 4 ; j++)
@@ -112,6 +110,50 @@ bool canMove(int dx, int dy){
             }
     return true;
 }
+
+// Vẽ khung
+void draw() {
+    gotoxy(0, 0);
+
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < W; j++) {
+            if (board[i][j] == ' ')
+                cout << "  ";
+            else
+                cout << "[]";
+        }
+        cout << endl;
+    }
+
+    cout << "Score: " << score << endl;
+    cout << "Speed: " << speed << endl;
+}
+
+///////////////////////////////////////////////////// XOAY BLOCK
+
+void rotateBlock()
+{
+    char temp[4][4];
+
+    //  block cũ
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            temp[i][j] = blocks[b][i][j];
+
+    // xoay 90 độ
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            blocks[b][j][3 - i] = temp[i][j];
+
+    //  lỗi thì trả lại
+    if (!canMove(0, 0))
+    {
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+                blocks[b][i][j] = temp[i][j];
+    }
+}
+
 
 int main()
 {
@@ -140,27 +182,3 @@ int main()
     return 0;
 }
 
-///////////////////////////////////////////////////// XOAY BLOCK
-
-void rotateBlock()
-{
-    char temp[4][4];
-
-    //  block cũ
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            temp[i][j] = blocks[b][i][j];
-
-    // xoay 90 độ
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            blocks[b][j][3 - i] = temp[i][j];
-
-    //  lỗi thì trả lại
-    if (!canMove(0, 0))
-    {
-        for (int i = 0; i < 4; i++)
-            for (int j = 0; j < 4; j++)
-                blocks[b][i][j] = temp[i][j];
-    }
-}
