@@ -1,6 +1,8 @@
 #include <iostream>
 #include <conio.h>
 #include <windows.h>
+#include <ctime>
+
 using namespace std;
 #define H 20
 #define W 15
@@ -76,6 +78,8 @@ int score = 0;
 int speed = 200;
 
 int x=4,y=0,b=1;
+int next_b = 0; // bien luu khoi
+
 void gotoxy(int x, int y) {
     COORD c = {x, y};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
@@ -129,6 +133,28 @@ void draw() {
     cout << "Speed: " << speed << endl;
 }
 
+// DRAW NEXT BLOCK
+void drawNextBlock() {
+    int startX = W * 2 + 5; // Toạ độ X nằm bên phải bàn chơi
+    int startY = 2;         // Toạ độ Y hơi dịch xuống một chút
+
+    gotoxy(startX, startY);
+    cout << "NEXT BLOCK:";
+
+    for (int i = 0; i < 4; i++) {
+        gotoxy(startX, startY + 1 + i); // Xuống dòng cho mỗi hàng của block
+        for (int j = 0; j < 4; j++) {
+            if (blocks[next_b][i][j] != ' ') {
+                cout << "[]"; // Vẽ khối
+            } else {
+                cout << "  "; // Xoá vết của khối cũ
+            }
+        }
+    }
+}
+
+
+
 ///////////////////////////////////////////////////// XOAY BLOCK
 
 void rotateBlock()
@@ -159,8 +185,10 @@ int main()
 {
     srand(time(0));
     b = rand() % 7;
+
     system("cls");
     initBoard();
+
     while (1){
         boardDelBlock();
         if (kbhit()){
@@ -168,16 +196,22 @@ int main()
             if (c=='a' && canMove(-1,0)) x--;
             if (c=='d' && canMove(1,0) ) x++;
             if (c=='x' && canMove(0,1))  y++;
+            if (c=='w' || c==' ') rotateBlock(); // GỌI HÀM XOAY KHỐI
             if (c=='q') break;
         }
         if (canMove(0,1)) y++;
         else {
             block2Board();
             x = 5; y = 0; b = rand() % 7;
+
+            //update next block
+            b = next_b;
+            next_b = rand() % 7;
         }
         block2Board();
         draw();
-        _sleep(200);
+        drawNextBlock();
+        Sleep(200);
     }
     return 0;
 }
