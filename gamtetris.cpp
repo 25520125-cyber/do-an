@@ -153,10 +153,7 @@ void drawNextBlock() {
     }
 }
 
-
-
-///////////////////////////////////////////////////// XOAY BLOCK
-
+// XOAY BLOCK
 void rotateBlock()
 {
     char temp[4][4];
@@ -181,6 +178,26 @@ void rotateBlock()
 }
 
 
+void showGuide();
+
+// Hướng dẫn chơi game
+void showGuide() {
+
+    system("cls");
+
+    cout << "===== HUONG DAN CHOI =====\n";
+
+    cout << "A : Di chuyen sang trai\n";
+    cout << "D : Di chuyen sang phai\n";
+    cout << "W : Xoay khoi\n";
+    cout << "X : Di chuyen nhanh hon\n";
+    cout << "Q : Thoat\n";
+
+    cout << "Nhan bat ky phim nao de quay lai...";
+
+    _getch();
+}
+
 int main()
 {
     srand(time(0));
@@ -191,8 +208,8 @@ int main()
 
     while (1){
         boardDelBlock();
-        if (kbhit()){
-            char c = getch();
+        if (_kbhit()){
+            char c = _getch();
             if (c=='a' && canMove(-1,0)) x--;
             if (c=='d' && canMove(1,0) ) x++;
             if (c=='x' && canMove(0,1))  y++;
