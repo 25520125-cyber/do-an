@@ -62,6 +62,7 @@ bool canMove(int dx, int dy) {
     return true;
 }
 
+// Vẽ khung
 void draw() {
     gotoxy(0, 0);
     for (int i = 0; i < H; i++) {
@@ -76,6 +77,7 @@ void draw() {
     cout << "Speed: " << speed << "ms   " << endl;
 }
 
+// Hiển thị khối kế tiếp
 void drawNextBlock() {
     int startX = W * 2 + 5; 
     int startY = 2;         
@@ -95,6 +97,7 @@ void drawNextBlock() {
     }
 }
 
+// Xoay block
 void rotateBlock() {
     char temp[4][4];
     for (int i = 0; i < 4; i++)
@@ -112,6 +115,7 @@ void rotateBlock() {
     }
 }
 
+// Xóa hàng và tăng tốc 
 void removeLine() {
     for (int i = H - 2; i > 0; i--) {
         int count = 0;
@@ -131,6 +135,7 @@ void removeLine() {
     }
 }
 
+// Hướng dẫn chơi
 void showGuide() {
     system("cls");
     cout << "===== HUONG DAN CHOI =====\n";
