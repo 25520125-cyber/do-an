@@ -29,6 +29,11 @@ void gotoxy(int x, int y) {
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
 }
 
+// Hàm khởi tạo màu 
+void setColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
 void boardDelBlock() {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
@@ -67,9 +72,40 @@ void draw() {
     gotoxy(0, 0);
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
-            if (board[i][j] == ' ') cout << "  ";
-            else if (board[i][j] == '#') cout << "##";
-            else cout << "[]";
+            if (board[i][j] == ' ') {
+                cout << "  ";
+            }
+            else if (board[i][j] == '#') {
+                setColor(7);
+                cout << "[]";
+            }
+            else {
+                    // Thiết lập màu cho các khối
+                 if (board[i][j] == 'I')
+                    setColor(3); // Xanh cyan đậm
+
+                 else if (board[i][j] == 'O')
+                    setColor(14); // Vàng sáng
+
+                 else if (board[i][j] == 'T')
+                    setColor(13); // Hồng/Tím sáng
+
+                 else if (board[i][j] == 'S')
+                    setColor(10); // Xanh lá sáng
+
+                 else if (board[i][j] == 'Z')
+                    setColor(12); // Đỏ sáng
+
+                 else if (board[i][j] == 'J')
+                    setColor(9); // Xanh dương sáng
+
+                 else if (board[i][j] == 'L')
+                    setColor(6); // Vàng Đậm
+
+                 cout << "[]";
+
+                 setColor(7);
+            }
         }
         cout << endl;
     }
@@ -148,12 +184,166 @@ void showGuide() {
     _getch();
 }
 
+// Giao diện của trò chơi
+void menu() {
+    system("cls");
+
+    // Các lựa chọn trong trò chơi
+    cout << "================================================\n";
+
+    // Đặt màu cho tựa game
+    setColor(11);
+    cout << "    TTTTTT ";
+
+    setColor(14);
+    cout << "EEEEEE ";
+
+    setColor(13);
+    cout << "TTTTTT ";
+
+    setColor(12);
+    cout << "RRRRR ";
+
+    setColor(10);
+    cout << " IIIIII ";
+
+    setColor(9);
+    cout << "SSSSS\n";
+
+
+    setColor(11);
+    cout << "      TT   ";
+
+    setColor(14);
+    cout << "EE     ";
+
+    setColor(13);
+    cout << "  TT   ";
+
+    setColor(12);
+    cout << "RR  RR ";
+
+    setColor(10);
+    cout << "  II   ";
+
+    setColor(9);
+    cout << "SS    \n";
+
+
+    setColor(11);
+    cout << "      TT   ";
+
+    setColor(14);
+    cout << "EEEEE  ";
+
+    setColor(13);
+    cout << "  TT   ";
+
+    setColor(12);
+    cout << "RRRRR  ";
+
+    setColor(10);
+    cout << "  II   ";
+
+    setColor(9);
+    cout << " SSS  \n";
+
+
+    setColor(11);
+    cout << "      TT   ";
+
+    setColor(14);
+    cout << "EE     ";
+
+    setColor(13);
+    cout << "  TT   ";
+
+    setColor(12);
+    cout << "RR RR  ";
+
+    setColor(10);
+    cout << "  II   ";
+
+    setColor(9);
+    cout << "   SS\n";
+
+
+    setColor(11);
+    cout << "      TT   ";
+
+    setColor(14);
+    cout << "EEEEEE ";
+
+    setColor(13);
+    cout << "  TT   ";
+
+    setColor(12);
+    cout << "RR  RR ";
+
+    setColor(10);
+    cout << "IIIIII ";
+
+    setColor(9);
+    cout << "SSSSS\n";
+
+    setColor(7);
+
+    cout << "================================================\n";
+
+    cout << "\n";
+
+    cout << "===================== MENU =====================\n";
+    cout << "1. Choi game\n";
+    cout << "2. Huong dan choi game\n";
+    cout << "3. Thoat game\n";
+
+    char c = _getch();
+
+    if (c == '2') {
+        showGuide();
+        menu();
+    }
+
+    if (c == '3') {
+        exit(0);
+    }
+}
+
+
+// Hàm dùng khi thua
+void gameOver() {
+
+    system("cls");
+
+    cout << "==================== GAME OVER ==================\n";
+
+    cout << "Final Score: " << score << "\n";
+    cout << "1. Choi lai\n";
+    cout << "2. Thoat game\n";
+
+    char c = _getch();
+
+    if (c == '1') {
+
+        score = 0;
+        speed = 200;
+        x = 4;
+        y = 0;
+
+        initBoard();
+
+        return;
+    }
+
+    exit(0);
+}
+
 int main() {
     srand(time(0));
     b = rand() % 7;
     next_b = rand() % 7;
 
-    showGuide(); // Hiển thị hướng dẫn trước khi vào game
+    menu();
 
     system("cls");
     initBoard();
@@ -182,10 +372,7 @@ int main() {
             next_b = rand() % 7;
 
             if (!canMove(0, 0)) {
-                system("cls");
-                cout << "GAME OVER!" << endl;
-                cout << "Final Score: " << score << endl;
-                break;
+               gameOver();
             }
         }
 
