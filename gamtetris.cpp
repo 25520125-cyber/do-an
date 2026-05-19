@@ -6,6 +6,42 @@
 
 using namespace std;
 
+// // Class cha dùng cho tất cả block
+class Piece {
+public:
+     // Hàm xoay block
+    // virtual để hỗ trợ đa hình
+    virtual void rotate(char shape[4][4]) {
+
+        char temp[4][4];
+
+     // Copy shape hiện tại sang temp
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                temp[i][j] = shape[i][j];
+            }
+        }
+
+        // Xoay block 90 độ
+        // Công thức:
+        // shape[j][3 - i]
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                shape[j][3 - i] = temp[i][j];
+            }
+        }
+    }
+};
+
+
+class OPiece : public Piece {
+public:
+
+    void rotate(char shape[4][4]) override {
+
+    }
+};
+
 #define H 20
 #define W 15
 #define OFFSET_X 25
@@ -28,6 +64,12 @@ char blocks[][4][4] = {
 int score = 0, speed = 200;
 int x = 4, y = 0, b = 1, next_b = 0;
 bool isGravityMode = false; // Biến check chế độ
+
+// Tạo object cho block thường
+Piece normalPiece;
+// Tạo object cho block O
+OPiece oPiece;
+
 int linesCleared = 0;       // Đếm số hàng đã xóa
 int sprintTarget = 20;      // Mục tiêu xóa 20 hàng
 clock_t sprintStartTime;    // Lưu thời điểm bắt đầu chơi
@@ -104,7 +146,7 @@ void drawModePreview(int choice) {
     else if (choice == 2) {
         setColor(YELLOW); cout << "[ MODE: SPRINT ]       ";
         setColor(WHITE);
-        gotoxy(px, py + 1); cout << "- Chay đua voi thoi gian.                 ";
+        gotoxy(px, py + 1); cout << "- Chay dua voi thoi gian.                 ";
         gotoxy(px, py + 2); cout << "- Xoa 20 hang nhanh nhat de THANG.        ";
     }
     else {
@@ -320,13 +362,6 @@ void drawNextBlock() {
     setColor(WHITE);
 }
 
-void rotateBlock() {
-    char temp[4][4];
-    for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) temp[i][j] = blocks[b][i][j];
-    for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) blocks[b][j][3 - i] = temp[i][j];
-    if (!canMove(0, 0)) for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) blocks[b][i][j] = temp[i][j];
-}
-
 void removeLine() {
     for (int i = H - 2; i > 0; i--) {
         int count = 0;
@@ -464,7 +499,26 @@ start_game:
             if ((c == 'a' || c == 'A' || c == 75) && canMove(-1, 0)) x--;
             if ((c == 'd' || c == 'D' || c == 77) && canMove(1, 0)) x++;
             if ((c == 's' || c == 'S' || c == 80) && canMove(0, 1)) y++;
-            if (c == 'w' || c == 'W' || c == 72 || c == 32) rotateBlock();
+            if (c == 'w' || c == 'W' || c == 72 || c == 32) {
+                   // Nếu là block O
+                if (b == 1)
+
+                  // Gọi rotate của class OPiece
+                  // Hàm này rỗng nên block O không xoay
+                    oPiece.rotate(blocks[b]);
+                else
+                  // Các block khác dùng rotate bình thường
+                    normalPiece.rotate(blocks[b]);
+                // Kiểm tra nếu block sau khi xoay bị đụng tường
+                if (!canMove(0, 0)) {
+
+                    // Rollback bằng cách xoay thêm 3 lần
+                    // Vì xoay 4 lần sẽ quay về trạng thái cũ
+                    normalPiece.rotate(blocks[b]);
+                    normalPiece.rotate(blocks[b]);
+                    normalPiece.rotate(blocks[b]);
+                }
+            }
 
             // Rơi nhanh (Chỉ dùng cho Normal/Sprint)
             if ((c == 'x' || c == 'X') && !isGravityMode) {
