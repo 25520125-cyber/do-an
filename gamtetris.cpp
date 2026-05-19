@@ -380,8 +380,14 @@ int showSubMenu(string title) {
     int choice = 0;
     system("cls");
 
+    int finalTime = (int)((clock() - sprintStartTime) / CLOCKS_PER_SEC);
+    
     while (true) {
         int mx = OFFSET_X + 21;
+
+        gotoxy(mx - 6, 5);
+        setColor(WHITE);
+        cout << "DIEM SO: " << score << " | THOI GIAN: " << finalTime << "s";
 
         gotoxy(mx, 8); setColor(YELLOW); cout << "=== " << title << " ===";
 
