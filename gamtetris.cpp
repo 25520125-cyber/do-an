@@ -27,6 +27,12 @@ char blocks[][4][4] = {
 
 int score = 0, speed = 200;
 int x = 4, y = 0, b = 1, next_b = 0;
+bool isGravityMode = false; // Biến check chế độ
+int linesCleared = 0;       // Đếm số hàng đã xóa
+int sprintTarget = 20;      // Mục tiêu xóa 20 hàng
+clock_t sprintStartTime;    // Lưu thời điểm bắt đầu chơi
+int gameMode = 0;           // 0: Normal, 1: Gravity, 2: Sprint
+clock_t spawnTime; // Đưa dòng này lên đây (biến toàn cục)
 
 void setColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
@@ -56,31 +62,99 @@ void drawBigTitle() {
     int ty = 2;
     int colors[] = {12, 14, 10, 11, 9, 13};
     string art[5][6] = {
-        {"[][][] ", "[][][] ", "[][][] ", "[][][] ", " [] ", "[][][]"},
-        {"  []   ", "[]     ", "  []   ", "[]  [] ", " [] ", "[]    "},
-        {"  []   ", "[][]   ", "  []   ", "[][]   ", " [] ", " [][] "},
-        {"  []   ", "[]     ", "  []   ", "[]  [] ", " [] ", "    []"},
-        {"  []   ", "[][][] ", "  []   ", "[]  [] ", " [] ", "[][][]"}
+        {"[][][] ", "[][][] ", " [][][] ", "[][][] ", " [] ", "[][][]"},
+        {"  []   ", "[]      ", "  []   ", "[]  [] ", " [] ", "[]    "},
+        {"  []   ", "[][]    ", "  []   ", "[][]    ", "[] ", " [][] "},
+        {"  []   ", "[]      ", "  []   ", "[]  [] ", " [] ", "    []"},
+        {"  []   ", "[][][] ", "   []   ", "[]  [] ", " [] ", "[][][]"}
     };
-
     setColor(7);
-    gotoxy(tx - 4, ty - 1);
-    cout << "===============================================";
-
+    gotoxy(tx - 4, ty - 1); cout << "===============================================";
     for (int i = 0; i < 5; i++) {
         gotoxy(tx, ty + i);
         for (int j = 0; j < 6; j++) {
-            setColor(colors[j]);
-            cout << art[i][j];
+            setColor(colors[j]); cout << art[i][j];
         }
     }
-
     setColor(7);
-    gotoxy(tx - 4, ty + 5);
-    cout << "===============================================";
-    gotoxy(tx - 4, ty + 6);
-    cout << "================= MENU GAME ===================";
+    gotoxy(tx - 4, ty + 5); cout << "===============================================";
+    gotoxy(tx - 4, ty + 6); cout << "================= MENU GAME ===================";
     setColor(15);
+}
+
+// HÀM MỚI: CHỌN CHẾ ĐỘ CHƠI
+// Thêm hàm hiển thị hướng dẫn tóm tắt trong menu chọn mode
+void drawModePreview(int choice) {
+    int px = OFFSET_X + 15;
+    int py = 15;
+    gotoxy(px + 7, py);
+
+    if (choice == 0) {
+        setColor(CYAN); cout << "[ MODE: CO DIEN ]      ";
+        setColor(WHITE);
+        gotoxy(px, py + 1); cout << "- Gach roi tu tu theo thoi gian.          ";
+        gotoxy(px, py + 2); cout << "- Toc do tang dan khi an diem.            ";
+    }
+    else if (choice == 1) {
+        setColor(RED);   cout << "[ MODE: TRONG LUC ]    ";
+        setColor(WHITE);
+        gotoxy(px, py + 1); cout << "- Co 3s de di chuyen.                     ";
+        gotoxy(px, py + 2); cout << "- Sau do gach ban THANG xuong day.        ";
+    }
+    else if (choice == 2) {
+        setColor(YELLOW); cout << "[ MODE: SPRINT ]       ";
+        setColor(WHITE);
+        gotoxy(px, py + 1); cout << "- Chay đua voi thoi gian.                 ";
+        gotoxy(px, py + 2); cout << "- Xoa 20 hang nhanh nhat de THANG.        ";
+    }
+    else {
+        setColor(GRAY);   cout << "[ QUAY LAI MENU ]      ";
+        setColor(WHITE);
+        gotoxy(px, py + 1); cout << "- Quay lai man hinh chinh.                ";
+        gotoxy(px, py + 2); cout << "                                          "; // Xóa dòng cũ
+    }
+}
+
+// Cập nhật lại hàm Menu phụ chọn mode
+int selectModeMenu() {
+    int choice = 0;
+    system("cls"); // Xóa màn hình 1 lần duy nhất
+
+    int mx = OFFSET_X + 23;
+    gotoxy(mx - 4, 8); setColor(YELLOW); cout << "--- CHON CHE DO CHOI ---";
+
+    while (true) {
+        // Lựa chọn 0
+        gotoxy(mx - 3, 10);
+        if (choice == 0) { setColor(CYAN); cout << " > CO DIEN (Normal) <  "; }
+        else { setColor(WHITE); cout << "   CO DIEN (Normal)    "; }
+
+        // Lựa chọn 1
+        gotoxy(mx - 4, 11);
+        if (choice == 1) { setColor(CYAN); cout << " > TRONG LUC (Gravity) <"; }
+        else { setColor(WHITE); cout << "   TRONG LUC (Gravity)  "; }
+
+        // Lựa chọn 2
+        gotoxy(mx - 3, 12);
+        if (choice == 2) { setColor(CYAN); cout << " > SPRINT (20 Lines) < "; }
+        else { setColor(WHITE); cout << "   SPRINT (20 Lines)   "; }
+
+        // Lựa chọn 3: THOÁT
+        gotoxy(mx - 3, 13);
+        if (choice == 3) { setColor(RED); cout << " > THOAT RA MENU <    "; }
+        else { setColor(WHITE); cout << "   THOAT RA MENU      "; }
+
+        drawModePreview(choice);
+
+        char c = _getch();
+        if (c == 'w' || c == 72) choice = (choice - 1 + 4) % 4; // Chia lấy dư cho 4
+        if (c == 's' || c == 80) choice = (choice + 1) % 4;     // Chia lấy dư cho 4
+
+        if (c == 13) {
+            if (choice == 3) return -1; // Trả về -1 để báo hiệu quay lại menu chính
+            return choice;
+        }
+    }
 }
 
 void initBoard() {
@@ -100,6 +174,11 @@ bool canMove(int dx, int dy) {
                 if (board[ty][tx] != ' ') return false;
             }
     return true;
+}
+void applyGravity() {
+    while (canMove(0, 1)) {
+        y++;
+    }
 }
 
 void loadingScreen() {
@@ -132,38 +211,44 @@ void showGuide() {
     int gx = OFFSET_X + 11;
     gotoxy(gx, 8);  cout << "    === HUONG DAN ===";
     setColor(WHITE);
-    gotoxy(gx, 10); cout << "      A: Sang trai";
-    gotoxy(gx, 11); cout << "      D: Sang phai";
-    gotoxy(gx, 12); cout << "      W: Xoay khoi";
-    gotoxy(gx, 13); cout << "      X: Roi nhanh";
+    gotoxy(gx, 10); cout << "      A,a: Sang trai";
+    gotoxy(gx, 11); cout << "      D,d: Sang phai";
+    gotoxy(gx, 12); cout << "      W,w: Xoay khoi";
+    gotoxy(gx, 13); cout << "      X,x: Roi nhanh";
+    setColor(WHITE);
     gotoxy(gx, 16); cout << "Bam phim bat ky de quay lai...";
     _getch();
 }
 
 int menu() {
     int choice = 0;
+    system("cls"); // Xóa màn hình 1 lần duy nhất khi mở Menu
+    drawBigTitle(); // Vẽ tiêu đề ASCII cố định bên trên
+
     while (true) {
-        system("cls");
-        drawBigTitle();
         int mx = OFFSET_X + 21;
 
+        // Vẽ lựa chọn 1
         gotoxy(mx, 10);
-        if (choice == 0) { setColor(CYAN); cout << " > BAT DAU GAME <"; }
-        else { setColor(WHITE); cout << "   BAT DAU GAME  "; }
+        if (choice == 0) { setColor(CYAN); cout << " > BAT DAU GAME < "; }
+        else { setColor(WHITE); cout << "   BAT DAU GAME    "; }
 
+        // Vẽ lựa chọn 2
         gotoxy(mx, 11);
-        if (choice == 1) { setColor(CYAN); cout << "> HUONG DAN CHOI <"; }
-        else { setColor(WHITE); cout << "  HUONG DAN CHOI  "; }
+        if (choice == 1) { setColor(CYAN); cout << " > HUONG DAN CHOI <"; }
+        else { setColor(WHITE); cout << "   HUONG DAN CHOI   "; }
 
+        // Vẽ lựa chọn 3
         gotoxy(mx, 12);
-        if (choice == 2) { setColor(RED); cout << "  > THOAT GAME <"; }
-        else { setColor(WHITE); cout << "    THOAT GAME  "; }
+        if (choice == 2) { setColor(RED); cout << " > THOAT GAME <   "; }
+        else { setColor(WHITE); cout << "   THOAT GAME      "; }
 
         char c = _getch();
-
         if (c == 'w' || c == 72) choice = (choice - 1 + 3) % 3;
         if (c == 's' || c == 80) choice = (choice + 1) % 3;
-        if (c == 13) { setColor(WHITE); return choice; }
+        if (c == 13) return choice;
+
+        // KHÔNG gọi system("cls") ở đây nữa
     }
 }
 
@@ -180,6 +265,7 @@ void block2Board() {
 }
 
 void draw() {
+    gotoxy(OFFSET_X, 0);
     for (int i = 0; i < H; i++) {
         gotoxy(OFFSET_X, i);
         for (int j = 0; j < W; j++) {
@@ -191,8 +277,31 @@ void draw() {
             }
         }
     }
+
     setColor(WHITE);
-    gotoxy(OFFSET_X, H + 1); cout << "Score: " << score << "    ";
+    gotoxy(OFFSET_X, H + 1);
+    cout << "Score: " << score << "    ";
+
+    gotoxy(OFFSET_X + 20, H + 1);
+    if(gameMode == 1) { setColor(RED); cout << "MODE: GRAVITY"; }
+    else if(gameMode == 2) { setColor(CYAN); cout << "MODE: SPRINT "; }
+    else { setColor(GREEN); cout << "MODE: NORMAL "; }
+
+    setColor(YELLOW);
+    gotoxy(OFFSET_X, H + 2);
+    double totalTime = (double)(clock() - sprintStartTime) / CLOCKS_PER_SEC;
+    cout << "Total Time: " << (int)totalTime << "s    ";
+
+    gotoxy(OFFSET_X, H + 3);
+    if (gameMode == 1) {
+        double timeLeft = 3.0 - ((double)(clock() - spawnTime) / CLOCKS_PER_SEC);
+        if (timeLeft < 0) timeLeft = 0;
+
+        setColor(RED);
+        gotoxy(OFFSET_X, H + 3); // Đảm bảo đúng vị trí
+        // Thêm khoảng trắng ở cuối để xóa ký tự thừa của lần vẽ trước
+        printf("GRAVITY DROP IN: %.1fs    ", timeLeft);
+    }
 }
 
 void drawNextBlock() {
@@ -203,8 +312,7 @@ void drawNextBlock() {
         gotoxy(startX, 3 + i);
         for (int j = 0; j < 4; j++) {
             if (blocks[next_b][i][j] != ' ') {
-                applyBlockColor(blocks[next_b][i][j]);
-                cout << "[]";
+                applyBlockColor(blocks[next_b][i][j]); cout << "[]";
             }
             else cout << "  ";
         }
@@ -226,117 +334,207 @@ void removeLine() {
         if (count == W - 2) {
             for (int ii = i; ii > 0; ii--) for (int jj = 1; jj < W - 1; jj++) board[ii][jj] = board[ii - 1][jj];
             score += 10;
+            linesCleared++; // THÊM DÒNG NÀY
             if (speed > 50) speed -= 5;
             i++;
         }
     }
 }
+// ... các hàm phía trên giữ nguyên ...
+int showSubMenu(string title) {
+    int choice = 0;
+    system("cls");
 
+    while (true) {
+        int mx = OFFSET_X + 21;
+
+        gotoxy(mx, 8); setColor(YELLOW); cout << "=== " << title << " ===";
+
+        string options[] = { "Choi lai", "Quay lai chon Mode", "Quay lai Menu chinh", "Thoat" };
+        for (int i = 0; i < 4; i++) {
+            gotoxy(mx + 2, 10 + i);
+
+            if (choice == i) {
+                // KHI ĐƯỢC CHỌN (Đang trỏ vào dòng này)
+                if (i == 3) setColor(RED);   // Nếu trỏ vào "Thoat" thì mới hiện màu Đỏ
+                else setColor(CYAN);          // Trỏ vào các dòng khác thì hiện màu Xanh
+
+                cout << "> " << options[i] << " <  ";
+            }
+            else {
+                // KHI KHÔNG ĐƯỢC CHỌN (Tất cả các dòng đều như nhau)
+                setColor(WHITE); // Hoặc GRAY nếu bạn muốn nó mờ hơn
+                cout << "  " << options[i] << "      ";
+            }
+        }
+
+        char c = _getch();
+        if (c == 224) c = _getch(); // Xử lý phím mũi tên
+        if (c == 'w' || c == 'W' || c == 72) choice = (choice - 1 + 4) % 4;
+        if (c == 's' || c == 'S' || c == 80) choice = (choice + 1) % 4;
+        if (c == 13) return choice;
+    }
+}
 int main() {
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(out, &cursorInfo);
-    cursorInfo.bVisible = false;
+    cursorInfo.bVisible = false; // Tắt con trỏ
     SetConsoleCursorInfo(out, &cursorInfo);
 
-    srand(time(0));
-
-    start_menu:
+// NHÃN QUAY LẠI MENU CHÍNH
+start_menu:
     int choice = menu();
-    if (choice == 1) {
-        showGuide();
-        goto start_menu;
+    if (choice == 1) { showGuide(); goto start_menu; }
+    if (choice == 2) return 0;
+
+// NHÃN QUAY LẠI CHỌN CHẾ ĐỘ
+choose_mode:
+    int modeChoice = selectModeMenu();
+
+    if (modeChoice == -1) {
+        goto start_menu; // Quay lại menu chính ngay lập tức
     }
-    if (choice == 2) { // Xử lý khi chọn Thoát
-        system("cls");
-        setColor(YELLOW);
-        gotoxy(OFFSET_X + 5, H / 2);
-        cout << "CAM ON BAN DA CHOI! TAM BIET!";
-        Sleep(1000);
-        return 0;
-    }
+
+    // Nếu không phải -1, mới gán mode và chạy tiếp
+    gameMode = modeChoice;
+    isGravityMode = (modeChoice == 1);
 
     loadingScreen();
+
+// NHÃN CHƠI LẠI (RESET THÔNG SỐ)
+start_game:
     system("cls");
     initBoard();
-    score = 0; speed = 200;
-    b = rand() % 7; next_b = rand() % 7;
+
+    // Reset thông số game
+    score = 0;
+    speed = 200;
+    linesCleared = 0;
+    sprintStartTime = clock();
+    b = rand() % 7;
+    next_b = rand() % 7;
     x = 4; y = 0;
 
+    bool hasDropped = false;
     clock_t lastTime = clock();
+    spawnTime = clock();
 
+    block2Board();
+    draw();
+    drawNextBlock();
+    int lastSec = -1;
     while (1) {
+            if (gameMode == 1) {
+        double timeLeft = 3.0 - ((double)(clock() - spawnTime) / CLOCKS_PER_SEC);
+        if (timeLeft < 0) timeLeft = 0;
+
+        // Chỉ vẽ lại nếu số giây lẻ thay đổi (ví dụ 2.9 -> 2.8)
+        // Hoặc đơn giản là vẽ lại mỗi 100ms
+        if ((int)(timeLeft * 10) != lastSec) {
+            draw();
+            lastSec = (int)(timeLeft * 10);
+        }
+    }
+        // --- LOGIC THẮNG SPRINT ---
+        if (gameMode == 2) {
+            gotoxy(OFFSET_X + 32, H - 5); setColor(CYAN);
+            cout << "PROGRESS: " << linesCleared << "/" << sprintTarget << "  ";
+            gotoxy(OFFSET_X + 32, H - 4); setColor(WHITE);
+            cout << "TIME: " << (double)(clock() - sprintStartTime) / CLOCKS_PER_SEC << "s    ";
+
+            if (linesCleared >= sprintTarget) {
+                int subChoice = showSubMenu("BAN DA THANG!");
+                if (subChoice == 0) goto start_game;
+                if (subChoice == 1) goto choose_mode;
+                if (subChoice == 2) goto start_menu;
+                if (subChoice == 3) exit(0);
+            }
+        }
+        if (gameMode == 1) draw();
+        // 1. XỬ LÝ NHẬP PHÍM
+       // 1. XỬ LÝ NHẬP PHÍM
         if (_kbhit()) {
             boardDelBlock();
-            char c = _getch();
-            if (c == 'a' && canMove(-1, 0)) x--;
-            if (c == 'd' && canMove(1, 0)) x++;
-            if (c == 'x' && canMove(0, 1)) y++;
-            if (c == 'w' || c == ' ') rotateBlock();
-            if (c == 'q') goto start_menu; // Nhấn Q để quay lại menu
+            int c = _getch();
+
+            if (c == 0 || c == 224) c = _getch();
+
+            // Di chuyển và xoay
+            if ((c == 'a' || c == 'A' || c == 75) && canMove(-1, 0)) x--;
+            if ((c == 'd' || c == 'D' || c == 77) && canMove(1, 0)) x++;
+            if ((c == 's' || c == 'S' || c == 80) && canMove(0, 1)) y++;
+            if (c == 'w' || c == 'W' || c == 72 || c == 32) rotateBlock();
+
+            // Rơi nhanh (Chỉ dùng cho Normal/Sprint)
+            if ((c == 'x' || c == 'X') && !isGravityMode) {
+                while(canMove(0, 1)) y++;
+            }
+
+            // Thoát ngang (Phải nằm TRONG ngoặc của _kbhit hoặc xử lý biến c cẩn thận)
+            if (c == 'q' || c == 'Q') goto start_menu;
 
             block2Board();
             draw();
         }
 
-        if (clock() - lastTime >= speed) {
-            boardDelBlock();
-            if (canMove(0, 1)) {
-                y++;
+        // 2. LOGIC TỰ ĐỘNG
+        if (isGravityMode) {
+            if (!hasDropped && (clock() - spawnTime >= 3000)) {
+                boardDelBlock();
+                applyGravity();
+                hasDropped = true;
                 block2Board();
-            } else {
-                block2Board();
+                draw();
+                lastTime = clock();
+            }
+
+            if (hasDropped && (clock() - lastTime >= speed)) {
                 removeLine();
                 x = 4; y = 0;
                 b = next_b; next_b = rand() % 7;
-                while(_kbhit()) _getch();
+                spawnTime = clock();
+                hasDropped = false;
 
                 if (!canMove(0, 0)) {
-                    system("cls");
-                    int goX = OFFSET_X + 10;
-                    int goY = H / 2 - 2;
-
-                    int gameOverChoice = 0;
-                    while (true) {
-
-                        gotoxy(goX, goY);
-                        setColor(RED); cout << "      GAME OVER!      ";
-
-                        gotoxy(goX, goY + 2);
-                        setColor(WHITE); cout << "  Tong diem cua ban: ";
-                        setColor(YELLOW); cout << score;
-
-
-                        gotoxy(goX + 3, goY + 4);
-                        if (gameOverChoice == 0) { setColor(CYAN); cout << "  > CHOI LAI < "; }
-                        else { setColor(WHITE); cout << "    CHOI LAI   "; }
-
-                        gotoxy(goX + 3, goY + 5);
-                        if (gameOverChoice == 1) { setColor(RED); cout << " > THOAT GAME < "; }
-                        else { setColor(WHITE); cout << "   THOAT GAME   "; }
-
-
-                        char key = _getch();
-                        if (key == 'w' || key == 72) gameOverChoice = 0;
-                        if (key == 's' || key == 80) gameOverChoice = 1;
-                        if (key == 13) break;
-                    }
-
-                    if (gameOverChoice == 0) {
-                        goto start_menu;
-                    } else {
-                        system("cls");
-                        setColor(YELLOW);
-                        gotoxy(OFFSET_X + 5, H / 2);
-                        cout << "CAM ON BAN DA CHOI! TAM BIET!";
-                        Sleep(1000);
-                        return 0;
-                    }
+                    int subChoice = showSubMenu("GAME OVER!");
+                    if (subChoice == 0) goto start_game;
+                    if (subChoice == 1) goto choose_mode;
+                    if (subChoice == 2) goto start_menu;
+                    if (subChoice == 3) exit(0);
                 }
+
+                block2Board();
+                draw();
+                drawNextBlock();
             }
-            draw();
-            drawNextBlock();
-            lastTime = clock();
+        }
+        else {
+            if (clock() - lastTime >= speed) {
+                boardDelBlock();
+                if (canMove(0, 1)) {
+                    y++;
+                    block2Board();
+                } else {
+                    block2Board();
+                    removeLine();
+                    x = 4; y = 0;
+                    b = next_b; next_b = rand() % 7;
+                    spawnTime = clock();
+                    if (!canMove(0, 0)) {
+                        int subChoice = showSubMenu("GAME OVER!");
+                        if (subChoice == 0) goto start_game;
+                        if (subChoice == 1) goto choose_mode;
+                        if (subChoice == 2) goto start_menu;
+                        if (subChoice == 3) exit(0);
+                    }
+
+                    block2Board();
+                    drawNextBlock();
+                }
+                draw();
+                lastTime = clock();
+            }
         }
         Sleep(1);
     }
