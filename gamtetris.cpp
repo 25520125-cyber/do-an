@@ -387,7 +387,7 @@ int showSubMenu(string title) {
 
         string options[] = { "Choi lai", "Quay lai chon Mode", "Quay lai Menu chinh", "Thoat" };
         for (int i = 0; i < 4; i++) {
-            gotoxy(mx + 2, 10 + i);
+            gotoxy(mx , 10 + i);
 
             if (choice == i) {
                 // KHI ĐƯỢC CHỌN (Đang trỏ vào dòng này)
