@@ -142,25 +142,34 @@ int main()
 
 ///////////////////////////////////////////////////// XOAY BLOCK
 
-void rotateBlock()
-{
-    char temp[4][4];
+class Piece {
+public:
+    // Ham xoay block sang phai
+    virtual void rotate(char shape[4][4]) {
 
-    //  block cũ
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            temp[i][j] = blocks[b][i][j];
+        char backup[4][4];
 
-    // xoay 90 độ
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            blocks[b][j][3 - i] = temp[i][j];
+        // Luu block hien tai
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                backup[row][col] = shape[row][col];
+            }
+        }
 
-    //  lỗi thì trả lại
-    if (!canMove(0, 0))
-    {
-        for (int i = 0; i < 4; i++)
-            for (int j = 0; j < 4; j++)
-                blocks[b][i][j] = temp[i][j];
+        // Xoay ma tran 90 do
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                shape[col][3 - row] = backup[row][col];
+            }
+        }
     }
-}
+};
+
+class OPiece : public Piece {
+public:
+
+    // Override de block O dung yen
+    void rotate(char shape[4][4]) override {
+        return;
+    }
+};
