@@ -262,6 +262,37 @@ void showGuide() {
     _getch();
 }
 
+class Piece {
+public:
+    // Ham xoay block sang phai
+    virtual void rotate(char shape[4][4]) {
+
+        char backup[4][4];
+
+        // Luu block hien tai
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                backup[row][col] = shape[row][col];
+            }
+        }
+
+        // Xoay ma tran 90 do
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 4; col++) {
+                shape[col][3 - row] = backup[row][col];
+            }
+        }
+    }
+};
+
+class OPiece : public Piece {
+public:
+
+    // Override de block O dung yen
+    void rotate(char shape[4][4]) override {
+        return;
+    }
+};
 int menu() {
     int choice = 0;
     system("cls"); // Xóa màn hình 1 lần duy nhất khi mở Menu
