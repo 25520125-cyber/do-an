@@ -262,37 +262,7 @@ void showGuide() {
     _getch();
 }
 
-class Piece {
-public:
-    // Ham xoay block sang phai
-    virtual void rotate(char shape[4][4]) {
 
-        char backup[4][4];
-
-        // Luu block hien tai
-        for (int row = 0; row < 4; row++) {
-            for (int col = 0; col < 4; col++) {
-                backup[row][col] = shape[row][col];
-            }
-        }
-
-        // Xoay ma tran 90 do
-        for (int row = 0; row < 4; row++) {
-            for (int col = 0; col < 4; col++) {
-                shape[col][3 - row] = backup[row][col];
-            }
-        }
-    }
-};
-
-class OPiece : public Piece {
-public:
-
-    // Override de block O dung yen
-    void rotate(char shape[4][4]) override {
-        return;
-    }
-};
 int menu() {
     int choice = 0;
     system("cls"); // Xóa màn hình 1 lần duy nhất khi mở Menu
@@ -412,15 +382,15 @@ int showSubMenu(string title) {
     system("cls");
 
     int finalTime = (int)((clock() - sprintStartTime) / CLOCKS_PER_SEC);
-    
+
     while (true) {
         int mx = OFFSET_X + 21;
 
-        gotoxy(mx - 6, 5);
+        gotoxy(mx - 3, 5);
         setColor(WHITE);
         cout << "DIEM SO: " << score << " | THOI GIAN: " << finalTime << "s";
 
-        gotoxy(mx, 8); setColor(YELLOW); cout << "=== " << title << " ===";
+        gotoxy(mx+1, 8); setColor(YELLOW); cout << "=== " << title << " ===";
 
         string options[] = { "Choi lai", "Quay lai chon Mode", "Quay lai Menu chinh", "Thoat" };
         for (int i = 0; i < 4; i++) {
